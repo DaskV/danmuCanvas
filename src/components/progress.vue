@@ -2,10 +2,10 @@
   <div class="daskV-progress" :style="{width:progressWidth }"   >
         <div class="daskV-progress-warp">
             <div class="daskV-progress-track">
-                <div class="daskV-progress-bar" @mousemove="getDetails" @mouseover="showDetails('block')" @mouseleave="showDetails('none')">
-                    <div class="daskV-progress-bar-range"></div>
+                <div class="daskV-progress-bar" @mousemove="getDetails" @mouseover="showDetails('block')" @mouseleave="showDetails('none')" ref="progressBar" @click="barClick">
+                    <div class="daskV-progress-bar-range" :style="{width:pointLeft+'px'}"></div>
                 </div>
-                <div class="daskV-progress-pointer" @mousedown.left="pointerDown" @mouseup.left="pointerUp" @mousemove="pointerMove" :style="{left:pointLeft}" ></div>
+                <div class="daskV-progress-pointer" @mousedown="pointerDown" :style="{left:pointLeft + 'px'}" ></div>
             </div>
         </div>
         <div class="daskV-progress-details" :style="{display:detailsShow}">
@@ -36,15 +36,28 @@ export default {
             this.detailsShow = type
         },
         pointerDown(){
-           this.pointerActive = true
+            //mouseup mousemove 事件 必须在 down事件中回调，否则 mouseup事件将丢失
+            this.pointerActive = true
+            window.addEventListener('mousemove',this.pointerMove)
+            window.addEventListener('mouseup',this.pointerUp)
         },
         pointerUp(){
             this.pointerActive = false
         },
         pointerMove(e){
             if(this.pointerActive){
+                if(e.clientX > this.barStyleLeft && e.clientX < this.barStyleRight){
+                    this.pointLeft = e.clientX - this.barStyleLeft
+                }
             }             
+        },
+        barClick(e){
+            this.pointLeft = e.clientX - this.barStyleLeft
         }
+    },
+    mounted(){
+        this.barStyleLeft = this.$refs.progressBar.getBoundingClientRect().left
+        this.barStyleRight = this.$refs.progressBar.getBoundingClientRect().right
     },
     props:['progressWidth']
 }
