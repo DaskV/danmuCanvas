@@ -1,5 +1,5 @@
 <template>
-  <canvas id="danmu-player" ref="player" :width="opts.width" :height="opts.height" style="position:absolute;top:0;left:0;">
+  <canvas class="barrage-player" ref="player" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:13;background:#000">
     您的浏览器不支持canvas标签。
   </canvas>
 </template>
@@ -14,11 +14,7 @@ export default {
       height: null,
       context: null,
       font: "20px Microsoft YaHei",
-      barrageList: [],
-      opts: this.options || {
-        width: window.innerWidth,
-        height: window.innerHeight / 2
-      }
+      barrageList: []
     };
   },
   mounted() {
