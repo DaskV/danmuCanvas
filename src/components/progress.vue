@@ -35,22 +35,26 @@ export default {
         showDetails(type){                   
             this.detailsShow = type
         },
+        //按下圆点
         pointerDown(){
             //mouseup mousemove 事件 必须在 down事件中回调，否则 mouseup事件将丢失
             this.pointerActive = true
             window.addEventListener('mousemove',this.pointerMove)
             window.addEventListener('mouseup',this.pointerUp)
         },
+        //松开圆点
         pointerUp(){
             this.pointerActive = false
         },
+        //移动圆点
         pointerMove(e){
             if(this.pointerActive){
-                if(e.clientX > this.barStyleLeft && e.clientX < this.barStyleRight){
+                if((e.clientX > this.barStyleLeft || e.clientX == this.barStyleLeft) && (e.clientX < this.barStyleRight || e.clientX == this.barStyleRight)){
                     this.pointLeft = e.clientX - this.barStyleLeft
                 }
             }             
         },
+        //点击进度条
         barClick(e){
             this.pointLeft = e.clientX - this.barStyleLeft
         }
@@ -84,7 +88,7 @@ export default {
                 background-color: #e5e9ef;
                 .daskV-progress-bar{
                     width: 100%;
-                    height: 8px;
+                    height: 6px;
                     position: absolute;
                     border-radius: 4px;
                     overflow: hidden;
