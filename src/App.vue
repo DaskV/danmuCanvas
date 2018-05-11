@@ -1,5 +1,5 @@
 <template>
-  <div id="app" style="width:800px;height:500px;">
+  <div id="app" style="width:800px;">
     <videoPlayer />
   </div>
 </template>

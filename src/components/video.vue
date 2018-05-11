@@ -61,15 +61,55 @@
                 </div>
                 <!-- 弹幕设置 -->
                 <div class="daskV-player-controler-barrageSet daskV-player-btn">
-                    <i class="iconfont">&#xe67f;</i>
+                    <i class="iconfont" v-show="!barrage.hide">&#xe698;</i>
+                    <i class="iconfont" v-show="barrage.hide">&#xe697;</i>
                     <div class="daskV-player-controler-barrageSet-wrap">
-                        <slider @change="barrageChange" :vertical="false" />
+                        <div class="daskV-player-controler-barrageSet-row">
+                            <label>不透明度:</label>
+                            <slider @change="barrageChange" :vertical="false" style="flex:1" :step="5" />
+                        </div>
+                        <div class="daskV-player-controler-barrageSet-row">
+                            <label>隐藏弹幕:</label>
+                            <input type="checkbox" v-model="barrage.hide" />
+                        </div>
                     </div>
+                </div>
+                <!-- 全屏 -->
+                <div class="daskV-player-controler-fullscreen daskV-player-btn">
+                    <i class="iconfont">&#xe781;</i>
                 </div>
             </div>
         </div>
         <!-- 弹幕输入区 -->
-        <div class="daskV-player-barrage"></div>
+        <div class="daskV-player-sendbar">
+            <!-- 设置弹幕字体 -->
+            <div class="daskV-player-sendbar-fontset daskV-player-btn" @click="fontPick.show = !fontPick.show">
+                <i class="iconfont">&#xe64f;</i>
+            </div>
+            <!-- 设置弹幕颜色 -->
+            <colorPicker v-model="colorPick.value" ref="colorPicker" style="width:5%;">
+                <div class="daskV-player-sendbar-fontcolor daskV-player-btn" @click="showPick">
+                    <span class="corlorDisplay" v-show="colorPick.value" :style="{backgroundColor:colorPick.value}"></span>
+                    <i class="iconfont" v-show="!colorPick.value">&#xe65b;</i>
+                </div>
+            </colorPicker>     
+            <!-- 输入区域 -->
+            <div class="daskV-player-texthandle">
+                <input type="text" placeholder="您可以在这里输入弹幕哦~QAQ " class="daskV-player-texthandle-input" />
+                <!-- 发送按钮 -->
+                <div class="daskV-player-sendbtn">
+                    <span>发 送》</span>
+                </div>
+            </div>        
+            <!-- 字体选择器 -->       
+            <transition name="slide-fade">
+                <div class="daskV-player-fontpick-warp" v-show="fontPick.show">
+                    <label>字号</label>
+                    <radioer :list="fontPick.list"  />
+                </div> 
+            </transition>  
+                      
+        </div>
     </div>
 </template>
 
@@ -77,6 +117,8 @@
 import barrage from './barrage'
 import progressBar from './progress'
 import slider from './slider'
+import colorPicker from './colorPicker'
+import radioer from './radio'
 export default {
   data() {
     return {
@@ -89,12 +131,42 @@ export default {
         quality:{
             data:['1080P','720P','480P'],
             activeIndex:0,
+        },
+        barrage:{
+            hide:false
+        },
+        colorPick:{
+            value:''
+        },
+        fontPick:{
+            show:false,
+            value:'',
+            list:[
+                {
+                    text:'小',
+                    value:'16px'
+                },
+                {
+                    text:'中',
+                    value:'24px'
+                },
+                {
+                    text:'大',
+                    value:'32px'
+                }
+            ]
         }
     };
   },
   created() {},
   mounted() {
      this.progressWidth = this.$refs.progressBar.offsetWidth
+     document.onclick = e => {
+        if(!this.$el.contains(e.target)){
+            this.fontPick.show = false   
+            this.$refs.colorPicker.hideBox()
+        }  
+     }
   },
   methods: {
       voiceChange(val){
@@ -106,9 +178,12 @@ export default {
       },
       barrageChange(val){
 
+      },
+      showPick(){
+          this.$refs.colorPicker.showBox()
       }
   },
-  components:{barrage,progressBar,slider}
+  components:{barrage,progressBar,slider,colorPicker,radioer}
 };
 </script>
 
@@ -138,9 +213,45 @@ $fontColor:#99a2aa;
     background-position: center;
     background-size: $percent;
 }
+
+@mixin boxshadow(){
+    box-shadow:0 0 5px rgba(0, 0, 0, 0.15);
+}
+
+@mixin borderRadius(){
+    border-radius: 4px 4px 0 0;      
+}
+
+@mixin flexRow(){
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+
 $border:1px solid #e2e2e2;
+
+.slide-fade{
+     transition: all .3s linear;
+}
+.slide-fade-leave-active,.slide-fade-enter-active {
+  transition: all .3s linear;
+}
+.slide-fade-enter, .slide-fade-leave-to{
+  transform: translateX(-10px);
+  opacity: 0;
+}
+
 .daskV-player *{
     user-select: none;
+}
+.daskV-player-btn:hover{
+    background-color: #f4f5f7;       
+    transition: all 0.3s linear;
+    cursor: pointer;
+    .iconfont{
+        color: #6d757a;
+        transition: all 0.3s linear;
+    }
 }
 .daskV-player {
     position: relative;
@@ -148,6 +259,7 @@ $border:1px solid #e2e2e2;
     width: 100%;
     height: 100%; 
     font-family: Arial, Helvetica, sans-serif;
+    border:$border;
     .daskV-player-section{
         position: relative;
         z-index: 69;
@@ -227,45 +339,35 @@ $border:1px solid #e2e2e2;
         align-items: center;
         width: 100%;
         height: 30px;
-        border: $border;
+        border-bottom: $border;
         border-top: 0;
         font-size: $fontSize;
         color:$fontColor;
         .daskV-player-controler-pausePlay,.daskV-player-controler-next{
-            width: 6%;
+            width: 5%;
             height: 100%;
             display: flex;
             justify-content:space-around;
             align-items: center;
             cursor: pointer;           
         }
-
-        .daskV-player-btn:hover{
-            background-color: #f4f5f7;       
-            transition: all 0.3s linear;
-            cursor: pointer;
-            .iconfont{
-                color: #6d757a;
-                transition: all 0.3s linear;
-            }
-        }
         .daskV-player-controler-progressBar{
-            width:50%;
+            flex:1
         }
         .daskV-player-controler-config{
-            width: 37%;
+            width: 30%;
             height: 100%;
             padding-left:1%; 
             display: flex;
             flex-flow:row nowrap;
             justify-content: flex-start;            
             align-items: center;
-            .daskV-player-controler-timer{
-                width: 25%;
+            .daskV-player-controler-timer{              
                 height: 100%;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                flex-basis: 10%;
             }
             .daskV-player-controler-voice{
                 width: 10%;
@@ -285,11 +387,12 @@ $border:1px solid #e2e2e2;
                     position: absolute;
                     top: -145px;
                     left: -.5px;
-                    background: #fff;
-                    border-radius: 4px 4px 0 0;
-                    border:$border;
+                    background: #fff;       
                     z-index: 99;
                     padding: 35px 0 10px 0;
+                    border:$border;
+                    @include borderRadius();
+                    @include boxshadow();
                     .daskV-player-controler-voice-value{
                         position: absolute;
                         top: 0;
@@ -320,6 +423,9 @@ $border:1px solid #e2e2e2;
                     z-index: 99;
                     background: #fff;
                     padding: 0;
+                    border:$border;
+                    @include borderRadius();
+                    @include boxshadow();
                     .daskV-player-controler-quliatymenu-row{
                         padding: 0 20px;
                         transition: all .3s linear;
@@ -342,27 +448,124 @@ $border:1px solid #e2e2e2;
                 position: relative;
                 &:hover{
                     .daskV-player-controler-barrageSet-wrap{
-                        display: block;
+                        visibility: visible;
                     }
                 }
                 .daskV-player-controler-barrageSet-wrap{
-                    display: none;
+                    visibility: hidden;
                     position: absolute;
-                    width: 200px;
-                    height: 150px;
+                    width: 170px;
                     left:50%;
                     margin-left: -100px;
-                    top: -151px;
+                    top: -98px;
                     z-index: 99;
                     background: #fff;
-                    border-radius: 4px 4px 0 0;
+                    border:$border;
+                    @include borderRadius();
+                    @include boxshadow();
+                    padding: 20px 10px;
+                    .daskV-player-controler-barrageSet-row{
+                        @include flexRow();                        
+                        label{
+                            margin-right: 8px;
+                        }
+                    }
                 }
             }
+            .daskV-player-controler-fullscreen{
+                line-height: 30px;
+                text-align: center;
+                height: 100%;
+            }
         }
-        
+        .daskV-player-controler-config>div{
+            flex:1
+        }
     }
-    
+    .daskV-player-sendbar{
+        height: 40px;
+        line-height: 40px;
+        @include flexRow();
+        position: relative;
+        .daskV-player-sendbar-fontset{
+            width:5%;
+            text-align: center;
+            position: relative;
+        }
+        .daskV-player-sendbar-fontcolor{
+            width:100%;
+            text-align: center;
+            position: relative;
+            .corlorDisplay{
+                width: 14px;
+                height: 14px;
+                display: inline-block;
+                position: relative;
+                top:3px;
+                border-radius: 4px;
+            }
+        }
+        .daskV-player-texthandle{
+            flex: 1;
+            background: linear-gradient(#f5f5f5,#fff);
+            border-left: $border;
+            @include flexRow();
+            .daskV-player-texthandle-input{
+                -webkit-appearance: none;
+                height: 100%;
+                border: none;
+                flex:1;
+                outline:none;
+                padding-left: 10px;
+                background: transparent;
+                color:$fontColor;
+            }
+        }
+        .daskV-player-sendbtn{
+            color: #fff;
+            border-radius: 4px;
+            background-color: #00a1d6;
+            vertical-align: middle;
+            border: 1px solid #00a1d6;
+            transition: .2s;
+            outline: none;
+            text-align: center;
+            display: inline-block;
+            overflow: visible;
+            margin-right: 10px;
+            z-index: 13;
+            height: 28px;
+            line-height: 28px;
+            padding: 0 10px 0 14px;
+            width: 40px;
+            font-size: $fontSize;
+            cursor: pointer;
+            &:hover{
+                background-color: #00b5e5;
+                border-color: #00b5e5;
+            }
+        }
+        .daskV-player-fontpick-warp{
+            position: absolute;
+            left:0;
+            bottom: 40px;
+            padding: 20px;
+            background: #fff;
+            z-index: 99;
+            font-size: 12px;
+            @include flexRow();
+            color: $fontColor;
+            @include borderRadius();
+            border:$border;
+            @include boxshadow();          
+        }
+    }
+    .daskV-player-sendbar>div{
+        height: 100%;
+    }
 
 }
+
+
 </style>
 

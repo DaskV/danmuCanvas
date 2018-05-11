@@ -4,11 +4,10 @@
             <div class="daskV-slider-track" :class="{'vertical':vertical == true , 'horizontal':vertical === false}">
 
                 <div class="daskV-slider-bar" ref="sliderBar" @click="barClick">
-                    <div class="daskV-slider-bar-range" :style="{height:value+'px'}"></div>
+                    <div class="daskV-slider-bar-range" :style="pointStyle"></div>
                 </div>
-                <div class="daskV-slider-pointer" @mousedown="pointerDown" :style="{bottom:value + 'px'}" v-if="vertical"></div>
-                <div class="daskV-slider-pointer" @mousedown="pointerDown" :style="{left:value + 'px'}" v-else></div>
-                <div class="daskV-slider-textValue" v-if="!vertical" :style="{left:value + 'px'}">{{textValue}}</div>
+                <div class="daskV-slider-pointer" @mousedown="pointerDown" :style="rangeStyle"></div>
+                <div class="daskV-slider-textValue" v-if="!vertical" :style="{left:value + 'px'}">{{value}}</div>
             </div>
       </div>
   </div>
@@ -20,7 +19,9 @@ export default {
         return{
             pointerActive:false,
             value: this.vertical ? this.pointBottom : this.pointLeft,
-            textValue:0,
+            newPosition:null,
+            rangeStyle:{},
+            pointStyle:{}        
         }
     },
     props:{
@@ -35,15 +36,44 @@ export default {
         vertical:{
             type:Boolean,
             default:false
+        },
+        step:{
+            type:Number,
+            default:1,
+        },
+        max:{
+            type:Number,
+            default:100,
+        },
+        min:{
+            type:Number,
+            default:0
+        }
+    },
+    computed:{
+        currentPosition(){
+            return `${ (this.value - this.min) / (this.max - this.min) * 100 }%`;
         }
     },
     methods:{
          //按下圆点
-        pointerDown(){
+        pointerDown(e){
             //mouseup mousemove 事件 必须在 down事件中回调，否则 mouseup事件将丢失
-            this.pointerActive = true
             window.addEventListener('mousemove',this.pointerMove)
             window.addEventListener('mouseup',this.pointerUp)
+
+            this.pointerActive = true
+            //开始时的起始位置
+            if(this.vertical){
+                this.startY = e.clientY
+            }
+            else{
+                this.startX = e.clientX
+            }
+            this.startPosition = parseFloat(this.currentPosition)
+            this.newPosition = parseFloat(this.currentPosition) - this.step / (this.max - this.min) * 100
+            this.setPosition(this.newPosition)
+            
         },
         //松开圆点
         pointerUp(){
@@ -51,38 +81,52 @@ export default {
         },
         //移动圆点
         pointerMove(e){
-            if(this.pointerActive){             
+            if(this.pointerActive){                 
+                let diff = 0
                 if(this.vertical){
-                    if((e.clientY < this.barStyleBottom || e.clientY == this.barStyleBottom) && (e.clientY > this.barStyleTop || e.clientY == this.barStyleTop)){
-                        this.value =  this.barStyleBottom - e.clientY
-                    }
+                    diff = (this.startY - e.clientY) / this.barHeight * 100
                 }
                 else{
-                    if((e.clientX > this.barStyleLeft || e.clientX == this.barStyleLeft) && (e.clientX < this.barStyleRight || e.clientX == this.barStyleRight)){
-                        let value  = e.clientX - this.barStyleLeft
-                        this.value = value
-                        this.textValue = Math.floor(value/2)     
-                    }
+                    diff = (e.clientX - this.startX) / this.barWidth * 100
                 }
-                this.$emit('change',this.value)          
+                this.newPosition = this.startPosition + diff
+                this.setPosition(this.newPosition)
             }             
         },
         //点击进度条
         barClick(e){
-            this.value = this.vertical ? this.barStyleBottom - e.clientY : e.clientX - this.barStyleLeft
-            if(!this.vertical) this.textValue = Math.floor((e.clientX - this.barStyleLeft)/2) 
-            
-            this.$emit('change',this.value)
+            if(this.vertical){
+                this.setPosition((this.barStyleBottom - e.clientY) / this.barHeight * 100)
+            }
+            else{
+                this.setPosition((e.clientX - this.barStyleLeft) / this.barWidth * 100)
+            }
+        },
+        //设置最新位置
+        setPosition(newPosition){
+            if(newPosition === null) return;
+            if(newPosition < 0) newPosition = 0
+            else if(newPosition > 100) newPosition = 100
+
+            let lengthPerStep = 100 /  ((this.max - this.min) / this.step)  //进度条分成几份
+            let steps = Math.round(newPosition / lengthPerStep)  //总步数
+            let value = steps * lengthPerStep * (this.max - this.min) * 0.01 + this.min //当前实际值
+            this.value = value.toFixed(0)
+            this.rangeStyle = this.vertical ? { bottom : value +'px' } : { left : value +'px'}
+            this.pointStyle = this.vertical ? { height : value +'px'} : { width: value +'px'}
+            this.$emit("change",value)
         }
     },
     mounted(){
         if(this.vertical){
             this.barStyleTop = this.$refs.sliderBar.getBoundingClientRect().top
             this.barStyleBottom = this.$refs.sliderBar.getBoundingClientRect().bottom
+            this.barHeight = this.$refs.sliderBar.offsetHeight
         }
         else{
             this.barStyleLeft = this.$refs.sliderBar.getBoundingClientRect().left
             this.barStyleRight = this.$refs.sliderBar.getBoundingClientRect().right
+            this.barWidth = this.$refs.sliderBar.offsetWidth
         }
         
     },

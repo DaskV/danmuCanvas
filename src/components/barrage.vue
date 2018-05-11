@@ -1,5 +1,5 @@
 <template>
-  <canvas class="barrage-player" ref="player" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:13;background:#000">
+  <canvas class="daskV-barrage-player" ref="player" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:13;background:#000">
     您的浏览器不支持canvas标签。
   </canvas>
 </template>
