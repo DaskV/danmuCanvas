@@ -3,7 +3,7 @@
         <div class="daskV-progress-warp">
             <div class="daskV-progress-track">
                 <div class="daskV-progress-bar" @mousemove="getDetails" @mouseover="showDetails('block')" @mouseleave="showDetails('none')" ref="progressBar" @click="barClick">
-                    <div class="daskV-progress-bar-range" :style="{width:pointLeft+'px'}"></div>
+                    <div class="daskV-progress-bar-range" :style="{width:rangeWidth+'px'}"></div>
                 </div>
                 <div class="daskV-progress-pointer" @mousedown="pointerDown" :style="{left:pointLeft + 'px'}" ></div>
             </div>
@@ -63,7 +63,7 @@ export default {
         this.barStyleLeft = this.$refs.progressBar.getBoundingClientRect().left
         this.barStyleRight = this.$refs.progressBar.getBoundingClientRect().right
     },
-    props:['progressWidth']
+    props:['progressWidth','rangeWidth']
 }
 </script>
 

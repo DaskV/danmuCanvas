@@ -3,29 +3,30 @@
         <!-- 播放区域 -->
         <div class="daskV-player-section">
             <!-- 加载界面 -->
-            <div class="daskV-player-preview">
+            <div class="daskV-player-preview" v-show="step < 3">
                 <div class="daskV-preview-icon"></div>
                 <div class="daskV-preview-text">
-                    <div class="daskV-preview-text-row">播放器初始化...['完成']</div>
-                    <div class="daskV-preview-text-row">播放器初始化...['完成']</div>
+                    <div class="daskV-preview-text-row" v-for="(item,index) in logs" :key="index">{{item.info}}</div>
+
                 </div>
             </div>
             <!-- loading -->
             <div class="daskV-player-loding"></div>     
             <!-- 悬浮播放按钮 -->
-            <div class="daskV-player-play"></div>
+            <div class="daskV-player-play" @click="videoPlay(false)" v-show="!playState"></div>
             <!-- 弹幕播放器 -->
-            <barrage />
+            <barrage v-if="step === 2" />
             <!-- 视频播放器 -->
             <div class="daskV-player-video">
-                <video :src="sourceSrc"></video>
+                <video :src="sourceSrc" id="video"></video>
             </div>        
         </div>
         <!-- 控制台 -->
         <div class="daskV-player-controler">
             <!-- 暂停播放按钮 -->
-            <div class="daskV-player-controler-pausePlay daskV-player-btn">
-                <i class="iconfont">&#xe653;</i>               
+            <div class="daskV-player-controler-pausePlay daskV-player-btn" @click="videoPlay(playState)">
+                <i class="iconfont" v-show="!playState">&#xe653;</i>     
+                <i class="iconfont" v-show="playState"> &#xe616;</i>                 
             </div>
             <!-- 下一个按钮 -->
             <div class="daskV-player-controler-next daskV-player-btn">
@@ -33,7 +34,7 @@
             </div>
             <!-- 进度条 -->
             <div class="daskV-player-controler-progressBar" ref="progressBar">
-                <progressBar  :progressWidth="progressWidth"  v-if="progressWidth" />
+                <progressBar  :progressWidth="progressWidth"  :rangeWidth="rangeWidth" v-if="progressWidth" />
             </div>
             <!-- 设置区域 -->
             <div class="daskV-player-controler-config">
@@ -122,7 +123,6 @@ import radioer from './radio'
 export default {
   data() {
     return {
-        sourceSrc: '',
         progressWidth:'',
         voice:{
             noVoice:false,
@@ -155,33 +155,112 @@ export default {
                     value:'32px'
                 }
             ]
-        }
+        },
+        logs:[],
+        step:0,
+        rangeWidth:0,
+        playState:false,
+        duration:0,
     };
   },
-  created() {},
+  created() {
+  },
   mounted() {
-     this.progressWidth = this.$refs.progressBar.offsetWidth
-     document.onclick = e => {
-        if(!this.$el.contains(e.target)){
-            this.fontPick.show = false   
-            this.$refs.colorPicker.hideBox()
-        }  
-     }
+        this.progressWidth = this.$refs.progressBar.offsetWidth
+        document.onclick = e => {
+            if(!this.$el.contains(e.target)){
+                this.fontPick.show = false   
+                this.$refs.colorPicker.hideBox()
+            }  
+        }
+        this.load()
   },
   methods: {
-      voiceChange(val){
-          this.voice.value = val
-          this.voice.noVoice = val === 0 ? true : false 
-      },
-      setQuality(i){
-          this.quality.activeIndex = i
-      },
-      barrageChange(val){
+        //设置音量
+        voiceChange(val){
+            this.voice.value = val
+            this.voice.noVoice = val === 0 ? true : false 
+        },
+        //设置视频播放质量
+        setQuality(i){
+            this.quality.activeIndex = i
+        },
+        //设置弹幕不透明度
+        barrageChange(val){
 
-      },
-      showPick(){
-          this.$refs.colorPicker.showBox()
-      }
+        },
+        //设置弹幕颜色
+        showPick(){
+            this.$refs.colorPicker.showBox()
+        },       
+        //获取视频状态
+        async getVideoState(){
+            this.logs.push(this.setLogs(true,'视频播放器加载...'))
+            this.logs.push(this.setLogs(true,'弹幕播放器加载...'))    
+            this.step = 1
+            setTimeout(() => {
+                let obj = {}
+                switch(this.video.readyState){
+                    case 0 : obj = this.setLogs(false,'未找到相关视频源'); this.step = -99 ; break;
+                    case 3 : 
+                    case 4 : obj = this.setLogs(true,'视频装载...'); this.step = 2; break;
+                    default: obj = this.setLogs(false,'视频装载...'); this.step = -1; break;
+                } 
+                this.logs.push(obj)  
+                if(this.step === 2){               
+                    this.logs.push(this.setLogs(true,'弹幕装载...'))
+                    this.step = 3
+                } 
+                else{
+                    throw new Error('视频装载失败');
+                }
+            }, 100);          
+        },
+        //获取缓冲区
+        getBuffered(){
+            this.duration = this.video.duration
+            console.log(this.video.duration)
+            // let bufferTimer = setInterval(()=>{
+            //     console.log(this.video.buffered.end(0))
+            // },1000)
+          
+        },
+        setLogs(ok,info){
+            return{
+                success:ok,
+                info:ok?info+'[成功]':info+'[失败]'
+            }
+        },
+        //播放暂停
+        videoPlay(type){           
+            if(type === true)
+                this.video.pause() 
+            else
+                this.video.play()
+            this.playState = !type
+        },
+
+        async load(){
+            this.getVideoState().then(()=>{
+                console.log(0)
+                // this.getBuffered()
+            }).catch(()=>{
+                console.log(1)
+            })
+            
+        }
+  },
+  computed:{
+        video(){
+            return document.querySelector('#video')
+        }
+  },
+  props:{
+        sourceSrc:{
+            default:'',
+            type:String
+        },
+
   },
   components:{barrage,progressBar,slider,colorPicker,radioer}
 };
@@ -275,7 +354,6 @@ $border:1px solid #e2e2e2;
             top: 0;
             z-index: 13;
             background: #fff;
-            display: none;
             cursor: pointer;
             .daskV-preview-icon{
                 position: absolute;
@@ -288,7 +366,7 @@ $border:1px solid #e2e2e2;
                 background-image: url('../assets/images/tv.gif');
                 @include backgourndImageCenter(80%)
             }
-            .daskV-player-text{
+            .daskV-preview-text{
                 position: absolute;
                 color: #ccd0d7;
                 font-size: 12px;

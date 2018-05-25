@@ -1,6 +1,6 @@
 <template>
   <div id="app" style="width:800px;">
-    <videoPlayer />
+    <videoPlayer  :sourceSrc="src" />
   </div>
 </template>
 
@@ -10,9 +10,12 @@ import videoPlayer from './components/video'
 export default {
   data(){
     return{
+      src:'http://www.w3school.com.cn/example/html5/mov_bbb.mp4'
     }
   },
-  mounted(){},
+  mounted(){
+
+  },
   components:{videoPlayer}
 }
 </script>

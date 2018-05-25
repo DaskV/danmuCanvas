@@ -1,5 +1,5 @@
 <template>
-  <canvas class="daskV-barrage-player" ref="player" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:13;background:#000">
+  <canvas class="daskV-barrage-player" ref="player" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:13;background:#000;">
     您的浏览器不支持canvas标签。
   </canvas>
 </template>
@@ -64,9 +64,9 @@ export default {
     },
     //发射弹幕
     shoot(value) {
-      let top = this.getTop();
-      let color = this.getColor();
-      let offset = this.getOffset();
+      let top = this.top ||  this.getTop();
+      let color = this.color || this.getColor();
+      let offset = this.offset || this.getOffset();
       let width = Math.ceil(this.context.measureText(value).width);
       let barrage = {
         value: value,
@@ -79,7 +79,18 @@ export default {
       this.barrageList.push(barrage);
     }
   },
-  props: ["options"]
+  props: {
+    barrageOptions:{
+      type:Object,
+      default:()=>{
+        return{
+          top:null,
+          color:null,
+          offset:null
+        }
+      }
+    }
+  }
 };
 </script>
 
