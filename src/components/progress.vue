@@ -10,7 +10,7 @@
             </div>
         </div>
         <div class="daskV-progress-details" :style="{display:detailsShow}">
-            <div class="daskV-progress-details-time" :style="{left:left - 20 +'px'}">{{timing}}</div>
+            <div class="daskV-progress-details-time" :style="{left:left - 18 +'px'}">{{timing}}</div>
             <div class="daskV-progress-details-sign" :style="{left:left +'px'}">
                 <div class="daskV-progress-details-sign-down"></div>
                 <div class="daskV-progress-details-sign-up"></div>
@@ -31,7 +31,8 @@ export default {
     },
     methods:{
         getDetails(e){
-            this.left = e.offsetX - 20                     
+            this.left = e.offsetX - 20            
+            this.$emit('showDetails',this.left)         
         },
         showDetails(type){                   
             this.detailsShow = type
@@ -64,6 +65,7 @@ export default {
         //点击进度条
         barClick(e){
             this.pointLeft = e.clientX - this.barStyleLeft
+            this.$emit('pointerUp',this.pointLeft)
         }
     },
     mounted(){
@@ -106,11 +108,11 @@ export default {
                         position: absolute;
                         top: 0;
                         left: 0;
-                        background-color: #8adced;
+                        background-color: #ad8aed;                    
                         z-index: 2;
                     }
                     .daskV-progress-bar-preload{
-                        background-color: #ad8aed;
+                        background-color: #8adced;
                         z-index: 1;
                     }
                 }
@@ -143,7 +145,7 @@ export default {
             z-index: 99;
             .daskV-progress-details-time{
                 position: absolute;
-                top: 8px;
+                top: 4px;
                 z-index: 2;
                 padding: 3px 5px;
                 border-radius: 4px;

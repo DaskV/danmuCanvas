@@ -1,5 +1,5 @@
 <template>
-    <div id="daskV-player" class="daskV-player">       
+    <div id="daskV-player" class="daskV-player" :class="{'fullscreen':fullscreen === true}" @keydown.esc="handlefullscreen">       
         <!-- 播放区域 -->
         <div class="daskV-player-section">
             <!-- 加载界面 -->
@@ -11,7 +11,7 @@
                 </div>
             </div>
             <!-- loading -->
-            <div class="daskV-player-loding"></div>     
+            <div class="daskV-player-loding" v-show="loading"></div>     
             <!-- 悬浮播放按钮 -->
             <div class="daskV-player-play" @click="videoPlay(false)" v-show="!playState"></div>
             <!-- 弹幕播放器 -->
@@ -84,7 +84,7 @@
                     </div>
                 </div>
                 <!-- 全屏 -->
-                <div class="daskV-player-controler-fullscreen daskV-player-btn">
+                <div class="daskV-player-controler-fullscreen daskV-player-btn" @click="handlefullscreen">
                     <i class="iconfont">&#xe781;</i>
                 </div>
             </div>
@@ -174,6 +174,8 @@ export default {
         pointPosition:0,
         frequency:1000,
         allTimer:{},
+        loading:false,
+        fullscreen:false
         
     };
   },
@@ -187,7 +189,14 @@ export default {
                 this.$refs.colorPicker.hideBox()
             }  
         }
+        window.onkeydown = e =>{
+            if(this.fullscreen){
+                this.fullscreen = false
+                console.log(this.fullscreen)
+            }
+        }
         this.load()
+        this.downloading()
   },
   methods: {
         //设置音量
@@ -209,9 +218,7 @@ export default {
             this.$refs.colorPicker.showBox()
         },       
         //获取视频状态
-        async getVideoState(){
-            this.logs.push(this.setLogs(true,'视频播放器加载...'))
-            this.logs.push(this.setLogs(true,'弹幕播放器加载...'))    
+        getVideoState(){         
             this.step = 1
             let obj = {}
             setTimeout(() => {
@@ -316,9 +323,57 @@ export default {
             }              
             this.playState = !type
         },
+        //缓冲与可播放
+        downloading(){
+            this.video.onwaiting = ()=>{
+                this.loading = true           
+            }
+            this.video.oncanplay = ()=>{
+                this.loading = false 
+            }
+        },
+        //全屏与关闭全屏
+        handlefullscreen(){
+            let domElement =   document.documentElement
+            //全屏
+            if(!this.fullscreen){
+                //chrome           
+                if(domElement.webkitRequestFullScreen)
+                    domElement.webkitRequestFullScreen();  
+                //W3C
+                else if(domElement.requestFullscreen)
+                    domElement.requestFullscreen();
+                //firefox
+                else if(domElement.mozRequestFullScreen)
+                    domElement.mozRequestFullScreen();
+                //ie
+                else if(dom.msRequestFullscreen)
+                    domElement.msRequestFullscreen();
+            }
+            //关闭全屏
+            else{
+                 //chrome           
+                if(domElement.webkitCancelFullScreen)
+                    domElement.webkitCancelFullScreen();  
+                //W3C
+                else if(domElement.exitFullscreen)
+                    domElement.exitFullscreen();
+                //firefox
+                else if(domElement.mozCancelFullScreen)
+                    domElement.mozCancelFullScreen();
+                //ie
+                else if(dom.msExitFullscreen)
+                    domElement.msExitFullscreen();
+            }
+            this.fullscreen = !this.fullscreen
+        },
         //播放器加载完毕
         load(){
-            this.getVideoState()          
+            this.logs.push(this.setLogs(true,'视频播放器加载...'))
+            this.logs.push(this.setLogs(true,'弹幕播放器加载...'))    
+            this.video.onloadedmetadata = ()=>{
+                this.getVideoState()          
+            }        
         }
   },
   computed:{
@@ -455,7 +510,7 @@ $border:1px solid #e2e2e2;
             margin-top: -25px;
             background-image: url('../assets/images/loading.gif');
             @include backgourndImageCenter(70%);
-            display: none;
+            z-index: 55;
         }
         .daskV-player-play{
             display: block;
@@ -471,13 +526,14 @@ $border:1px solid #e2e2e2;
         }
         .daskV-player-video{
             position: relative;
-            width: 100%;
-            height: 100%;
+            display: flex;
+            flex-grow: 1;
             z-index: 10;
             video{
                 width: 100%;
                 height: 100%;
                 margin: 0 auto;
+                display:block
             }
         }
     }
@@ -711,7 +767,23 @@ $border:1px solid #e2e2e2;
     .daskV-player-sendbar>div{
         height: 100%;
     }
-
+    &.fullscreen{
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        border-radius: 0;
+        border: 0;
+        .daskV-player-controler{
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background: #fff;
+            z-index: 99;
+            transition: all 0.3s linear;
+        }
+    }
 }
 
 

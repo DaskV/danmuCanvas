@@ -27,7 +27,7 @@ export default {
     props:{
         pointBottom:{
             type:Number,
-            default:0,
+            default:50,
         },
         pointLeft:{
             type:Number,
@@ -122,6 +122,10 @@ export default {
             this.barStyleTop = this.$refs.sliderBar.getBoundingClientRect().top
             this.barStyleBottom = this.$refs.sliderBar.getBoundingClientRect().bottom
             this.barHeight = this.$refs.sliderBar.offsetHeight
+            this.value = this.pointBottom
+            this.pointStyle = { height : this.value +'px'}
+            this.rangeStyle = { bottom : this.value +'px'}
+            this.$emit("change",this.value)
         }
         else{
             this.barStyleLeft = this.$refs.sliderBar.getBoundingClientRect().left
