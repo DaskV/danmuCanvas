@@ -34,15 +34,23 @@
             </div>
             <!-- 进度条 -->
             <div class="daskV-player-controler-progressBar" ref="progressBar">
-                <progressBar  :progressWidth="progressWidth"  :rangeWidth="rangeWidth" v-if="progressWidth" />
+                <progressBar 
+                 :progressWidth="progressWidth" 
+                 :rangeWidth="rangeWidth" 
+                 :pointPosition="pointPosition"   
+                 :timing="timing"
+                 @pointerUp="pointerUp"
+                 @pointerDown="pointerDown"
+                 @showDetails="showTiming"
+                 v-if="progressWidth" />
             </div>
             <!-- 设置区域 -->
             <div class="daskV-player-controler-config">
                 <!-- 计时器 -->
                 <div class="daskV-player-controler-timer daskV-player-btn">
-                    <div class="daskV-player-controler-time-now">00:01</div>
+                    <div class="daskV-player-controler-time-now">{{nowTime}}</div>
                     <div class="daskV-player-controler-time-divider">/</div>
-                    <div class="daskV-player-controler-time-total">99:99</div>
+                    <div class="daskV-player-controler-time-total">{{duration}}</div>
                 </div>
                 <!-- 声音 -->
                 <div class="daskV-player-controler-voice daskV-player-btn">
@@ -160,7 +168,13 @@ export default {
         step:0,
         rangeWidth:0,
         playState:false,
-        duration:0,
+        nowTime:'00:00',
+        duration:'00:00',
+        timing:'00:00',
+        pointPosition:0,
+        frequency:1000,
+        allTimer:{},
+        
     };
   },
   created() {
@@ -179,6 +193,7 @@ export default {
         //设置音量
         voiceChange(val){
             this.voice.value = val
+            this.video.volume = val /100
             this.voice.noVoice = val === 0 ? true : false 
         },
         //设置视频播放质量
@@ -198,56 +213,112 @@ export default {
             this.logs.push(this.setLogs(true,'视频播放器加载...'))
             this.logs.push(this.setLogs(true,'弹幕播放器加载...'))    
             this.step = 1
+            let obj = {}
             setTimeout(() => {
-                let obj = {}
                 switch(this.video.readyState){
                     case 0 : obj = this.setLogs(false,'未找到相关视频源'); this.step = -99 ; break;
+                    case 1 : this.getVideoState();break;
                     case 3 : 
                     case 4 : obj = this.setLogs(true,'视频装载...'); this.step = 2; break;
                     default: obj = this.setLogs(false,'视频装载...'); this.step = -1; break;
                 } 
-                this.logs.push(obj)  
                 if(this.step === 2){               
                     this.logs.push(this.setLogs(true,'弹幕装载...'))
                     this.step = 3
+                    //视频总时长
+                    this.duration = this.timerChange(this.video.duration) 
+                    this.timerFrequency()
+                    this.getBuffered()
                 } 
-                else{
-                    throw new Error('视频装载失败');
-                }
-            }, 100);          
+            }, 100);
+            
         },
         //获取缓冲区
         getBuffered(){
-            this.duration = this.video.duration
-            console.log(this.video.duration)
-            // let bufferTimer = setInterval(()=>{
-            //     console.log(this.video.buffered.end(0))
-            // },1000)
-          
+            if(this.video.buffered.length>0){
+                this.rangeWidth =  Math.floor((this.video.buffered.end(0) / this.video.duration) * this.progressWidth)  + 14     
+            }    
         },
+        //获取当前播放位置
+        getNowPosition(){          
+            this.pointPosition =  Math.floor((this.video.currentTime / this.video.duration) * this.progressWidth)        
+        },
+        //打印日志
         setLogs(ok,info){
             return{
                 success:ok,
                 info:ok?info+'[成功]':info+'[失败]'
             }
         },
+        //时长转换
+        timerChange(duration){
+            if(duration>60){
+                let second = Math.round(duration) % 60;
+                    second = second > 9 ? second : '0'+ second;
+                let min = Math.round(duration / 60);  
+                    min = min > 9 ? min : '0'+ min;
+                duration = min +':' + second;
+                                   
+            }
+            if(duration>9 && duration<60){
+                duration = '00:' + Math.round(duration) 
+            }
+            if(duration<10){
+               
+                duration = '00:0' + Math.round(duration) 
+            }
+            return duration
+        },
+        //位置定时器频率
+        timerFrequency(){
+           let min = 1
+           if(this.video.duration>min*10) this.frequency = 2000
+           if(this.video.duration>min*20) this.frequency = 3000
+           if(this.video.duration>min*30) this.frequency = 4000
+           if(this.video.duration>min*60) this.frequency = 5000
+        },
+        //按下圆点,暂时清除位置计时器
+        pointerDown(){
+            clearInterval(this.allTimer['PositionTimer'])
+            clearInterval(this.allTimer['nowTimer'])
+        },
+        //松开圆点，视频寻址
+        pointerUp(val){
+            this.video.currentTime = Math.round(val / this.progressWidth * this.video.duration)
+            this.videoPlay(false)
+        },
+        //定时器
+        timer(){
+             //当前位置定时器
+            this.allTimer['PositionTimer'] = setInterval(()=>{
+                this.getNowPosition()
+            },this.frequency)
+            //时间计时器
+            this.allTimer['nowTimer'] = setInterval(()=>{
+                this.nowTime = this.timerChange(this.video.currentTime) 
+                this.getBuffered()
+            },1000)
+        },
+        //鼠标放在进度条，显示时间
+        showTiming(val){
+            this.timing = this.timerChange(val / this.progressWidth * this.video.duration)
+        },
         //播放暂停
         videoPlay(type){           
-            if(type === true)
+            this.timer()
+            if(type === true){
                 this.video.pause() 
-            else
-                this.video.play()
+                clearInterval(this.allTimer['PositionTimer'])
+                clearInterval(this.allTimer['nowTimer'])
+            }        
+            else{
+                this.video.play()             
+            }              
             this.playState = !type
         },
-
-        async load(){
-            this.getVideoState().then(()=>{
-                console.log(0)
-                // this.getBuffered()
-            }).catch(()=>{
-                console.log(1)
-            })
-            
+        //播放器加载完毕
+        load(){
+            this.getVideoState()          
         }
   },
   computed:{
@@ -345,7 +416,6 @@ $border:1px solid #e2e2e2;
         width: 100%;
         height: 100%;
         user-select: none;
-        border: $border;
         .daskV-player-preview{
             width: 100%;
             height: 100%;

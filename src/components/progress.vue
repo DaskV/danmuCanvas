@@ -3,14 +3,15 @@
         <div class="daskV-progress-warp">
             <div class="daskV-progress-track">
                 <div class="daskV-progress-bar" @mousemove="getDetails" @mouseover="showDetails('block')" @mouseleave="showDetails('none')" ref="progressBar" @click="barClick">
-                    <div class="daskV-progress-bar-range" :style="{width:rangeWidth+'px'}"></div>
+                    <div class="daskV-progress-bar-range" :style="{width:pointLeft+'px'}"></div>
+                    <div class="daskV-progress-bar-preload" :style="{width:rangeWidth+'px'}"></div>
                 </div>
                 <div class="daskV-progress-pointer" @mousedown="pointerDown" :style="{left:pointLeft + 'px'}" ></div>
             </div>
         </div>
         <div class="daskV-progress-details" :style="{display:detailsShow}">
-            <div class="daskV-progress-details-time"></div>
-            <div class="daskV-progress-details-sign" :style="{left:left}">
+            <div class="daskV-progress-details-time" :style="{left:left - 20 +'px'}">{{timing}}</div>
+            <div class="daskV-progress-details-sign" :style="{left:left +'px'}">
                 <div class="daskV-progress-details-sign-down"></div>
                 <div class="daskV-progress-details-sign-up"></div>
             </div>
@@ -25,15 +26,18 @@ export default {
             left:0,
             detailsShow:false,
             pointerActive:false,
-            pointLeft:0,
+            pointLeft:this.pointPosition
         }
     },
     methods:{
         getDetails(e){
-            this.left = e.offsetX - 20 + 'px'                             
+            this.left = e.offsetX - 20                     
         },
         showDetails(type){                   
             this.detailsShow = type
+            if(type==='block'){
+                this.$emit('showDetails',this.left)
+            }
         },
         //按下圆点
         pointerDown(){
@@ -41,10 +45,13 @@ export default {
             this.pointerActive = true
             window.addEventListener('mousemove',this.pointerMove)
             window.addEventListener('mouseup',this.pointerUp)
+            this.$emit('pointerDown')
+
         },
         //松开圆点
         pointerUp(){
             this.pointerActive = false
+            this.$emit('pointerUp',this.pointLeft)
         },
         //移动圆点
         pointerMove(e){
@@ -63,7 +70,7 @@ export default {
         this.barStyleLeft = this.$refs.progressBar.getBoundingClientRect().left
         this.barStyleRight = this.$refs.progressBar.getBoundingClientRect().right
     },
-    props:['progressWidth','rangeWidth']
+    props:['progressWidth','rangeWidth','pointPosition','timing']
 }
 </script>
 
@@ -94,12 +101,17 @@ export default {
                     overflow: hidden;
                     top: 0;
                     left: 0;
-                    .daskV-progress-bar-range{
+                    .daskV-progress-bar-range,.daskV-progress-bar-preload{
                         height: 100%;
                         position: absolute;
                         top: 0;
                         left: 0;
                         background-color: #8adced;
+                        z-index: 2;
+                    }
+                    .daskV-progress-bar-preload{
+                        background-color: #ad8aed;
+                        z-index: 1;
                     }
                 }
                 .daskV-progress-pointer{
@@ -128,8 +140,10 @@ export default {
             z-index: 1;
             pointer-events: none;
             display: none;
+            z-index: 99;
             .daskV-progress-details-time{
-                position: relative;
+                position: absolute;
+                top: 8px;
                 z-index: 2;
                 padding: 3px 5px;
                 border-radius: 4px;
