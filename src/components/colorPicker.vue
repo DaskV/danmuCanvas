@@ -159,7 +159,7 @@ export default {
     // 更新组件的值 value
     updataValue(value) {
       this.$emit("input", value);
-      this.$emit("change", value);
+      this.$emit("colorChange", value);
       this.openStatus = false;
     },
     // 设置默认颜色

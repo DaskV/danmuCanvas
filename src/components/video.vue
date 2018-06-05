@@ -15,14 +15,22 @@
             <!-- 悬浮播放按钮 -->
             <div class="daskV-player-play" @click="videoPlay(false)" v-show="!playState"></div>
             <!-- 弹幕播放器 -->
-            <barrage v-if="step === 2" />
+            <barrage 
+                ref="barrage"
+                :opacity="barrage.opacity"
+                :style="{'visibility':barrage.hide?'hidden':'visible'}"
+                v-if="step > 2"
+
+            />
             <!-- 视频播放器 -->
-            <div class="daskV-player-video">
+            <div class="daskV-player-video" @click="videoPlay(playState)">
                 <video :src="sourceSrc" id="video"></video>
             </div>        
+            <!-- 全屏鼠标触发显示控制台区域 -->
+            <div class="daskV-player-hover" @mouseover="listneControler('in')" @mouseout="listneControler('out')"></div>
         </div>
         <!-- 控制台 -->
-        <div class="daskV-player-controler">
+        <div class="daskV-player-controler" :style="{'opacity':controler.opacity}" @mouseover="listneControler('in')">
             <!-- 暂停播放按钮 -->
             <div class="daskV-player-controler-pausePlay daskV-player-btn" @click="videoPlay(playState)">
                 <i class="iconfont" v-show="!playState">&#xe653;</i>     
@@ -75,7 +83,7 @@
                     <div class="daskV-player-controler-barrageSet-wrap">
                         <div class="daskV-player-controler-barrageSet-row">
                             <label>不透明度:</label>
-                            <slider @change="barrageChange" :vertical="false" style="flex:1" :step="5" />
+                            <slider @change="barrageChange" :vertical="false" style="flex:1" :step="5" :pointLeft="100" />
                         </div>
                         <div class="daskV-player-controler-barrageSet-row">
                             <label>隐藏弹幕:</label>
@@ -96,7 +104,7 @@
                 <i class="iconfont">&#xe64f;</i>
             </div>
             <!-- 设置弹幕颜色 -->
-            <colorPicker v-model="colorPick.value" ref="colorPicker" style="width:5%;">
+            <colorPicker v-model="colorPick.value" ref="colorPicker" style="width:5%;" @colorChange="setFontColor">
                 <div class="daskV-player-sendbar-fontcolor daskV-player-btn" @click="showPick">
                     <span class="corlorDisplay" v-show="colorPick.value" :style="{backgroundColor:colorPick.value}"></span>
                     <i class="iconfont" v-show="!colorPick.value">&#xe65b;</i>
@@ -104,9 +112,9 @@
             </colorPicker>     
             <!-- 输入区域 -->
             <div class="daskV-player-texthandle">
-                <input type="text" placeholder="您可以在这里输入弹幕哦~QAQ " class="daskV-player-texthandle-input" />
+                <input type="text" placeholder="您可以在这里输入弹幕哦~QAQ " class="daskV-player-texthandle-input"  v-model="barrage.text"/>
                 <!-- 发送按钮 -->
-                <div class="daskV-player-sendbtn">
+                <div class="daskV-player-sendbtn" @click="sendBarrage">
                     <span>发 送》</span>
                 </div>
             </div>        
@@ -114,7 +122,7 @@
             <transition name="slide-fade">
                 <div class="daskV-player-fontpick-warp" v-show="fontPick.show">
                     <label>字号</label>
-                    <radioer :list="fontPick.list"  />
+                    <radioer :list="fontPick.list" @setFontSize="setFontSize" />
                 </div> 
             </transition>  
                       
@@ -141,7 +149,14 @@ export default {
             activeIndex:0,
         },
         barrage:{
-            hide:false
+            hide:false,
+            config:{
+                color:'#fff',
+                fontSize:'20px',
+                fontFamily:'Microsoft Yahei',
+            },
+            text:'',
+            opacity:1
         },
         colorPick:{
             value:''
@@ -164,6 +179,9 @@ export default {
                 }
             ]
         },
+        controler:{
+            opacity:1
+        },
         logs:[],
         step:0,
         rangeWidth:0,
@@ -175,7 +193,8 @@ export default {
         frequency:1000,
         allTimer:{},
         loading:false,
-        fullscreen:false
+        fullscreen:false,
+        
         
     };
   },
@@ -189,14 +208,9 @@ export default {
                 this.$refs.colorPicker.hideBox()
             }  
         }
-        window.onkeydown = e =>{
-            if(this.fullscreen){
-                this.fullscreen = false
-                console.log(this.fullscreen)
-            }
-        }
+        
         this.load()
-        this.downloading()
+        this.downloading()       
   },
   methods: {
         //设置音量
@@ -211,12 +225,27 @@ export default {
         },
         //设置弹幕不透明度
         barrageChange(val){
-
+            this.barrage.opacity = val
         },
-        //设置弹幕颜色
+        //显示弹幕颜色控件
         showPick(){
             this.$refs.colorPicker.showBox()
         },       
+        //设置弹幕字体大小
+        setFontSize(val){
+            this.barrage.config.fontSize = val
+        },
+        //设置弹幕颜色
+        setFontColor(val){
+            this.barrage.config.color = val
+        },
+        //发送弹幕
+        sendBarrage(){
+
+            this.$refs.barrage.shoot(this.barrage.text,this.barrage.config)
+            
+            this.barrage.text = ''
+        },
         //获取视频状态
         getVideoState(){         
             this.step = 1
@@ -347,8 +376,14 @@ export default {
                 else if(domElement.mozRequestFullScreen)
                     domElement.mozRequestFullScreen();
                 //ie
-                else if(dom.msRequestFullscreen)
+                else if(domElement.msRequestFullscreen)
                     domElement.msRequestFullscreen();
+
+                
+                setTimeout(() => {
+                    this.progressWidth = this.$refs.progressBar.offsetWidth
+                    this.controler.opacity = 0;
+                }, 1000);
             }
             //关闭全屏
             else{
@@ -362,10 +397,31 @@ export default {
                 else if(domElement.mozCancelFullScreen)
                     domElement.mozCancelFullScreen();
                 //ie
-                else if(dom.msExitFullscreen)
+                else if(domElement.msExitFullscreen)
                     domElement.msExitFullscreen();
+
+                this.controler.opacity = 1;
             }
             this.fullscreen = !this.fullscreen
+        },
+        //全屏监控鼠标,隐藏显示控制栏
+        listneControler(type){
+            if(this.fullscreen){
+                this.controler.opacity = type==='in' ? 1 : 0
+            }
+        },
+        //全屏时监控键盘
+        listneKeyCode(){
+            window.onkeydown = e =>{    
+                if(this.fullscreen ){
+                    if(e.keyCode === 27){
+                        this.handlefullscreen()            
+                    }
+                    else if(e.keyCode === 13 || e.keyCode === 32){
+                        this.videoPlay(this.playState)
+                    }
+                }            
+            }
         },
         //播放器加载完毕
         load(){
@@ -373,6 +429,7 @@ export default {
             this.logs.push(this.setLogs(true,'弹幕播放器加载...'))    
             this.video.onloadedmetadata = ()=>{
                 this.getVideoState()          
+                this.listneKeyCode()
             }        
         }
   },
@@ -386,7 +443,6 @@ export default {
             default:'',
             type:String
         },
-
   },
   components:{barrage,progressBar,slider,colorPicker,radioer}
 };
@@ -520,7 +576,7 @@ $border:1px solid #e2e2e2;
             right: 10px;
             bottom: 24px;
             cursor: pointer;
-            z-index: 12;
+            z-index: 16;
             background-image: url('../assets/images/play.png');
             @include backgourndImageCenter(75%)
         }
@@ -529,12 +585,24 @@ $border:1px solid #e2e2e2;
             display: flex;
             flex-grow: 1;
             z-index: 10;
+            cursor: pointer;
             video{
                 width: 100%;
                 height: 100%;
                 margin: 0 auto;
                 display:block
             }
+        }
+        .daskV-player-hover{
+            width: 100%;
+            height: 30%;
+            z-index: 81;
+            display: none;
+            background: transparent;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            cursor: pointer;
         }
     }
     .daskV-player-controler{
@@ -780,8 +848,17 @@ $border:1px solid #e2e2e2;
             bottom: 0;
             left: 0;
             background: #fff;
-            z-index: 99;
+            z-index: 80;
             transition: all 0.3s linear;
+        }
+        .daskV-player-controler-pausePlay,.daskV-player-controler-next{
+            width: 2%;
+        }
+        .daskV-player-controler-config{
+            width: 15%;
+        }
+        .daskV-player-hover{
+            display: block;
         }
     }
 }

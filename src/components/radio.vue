@@ -1,6 +1,6 @@
 <template>
   <div class="daskV-radio">
-      <div class="daskV-radio-item" v-for="(item,index) in list" :key="item.value" @click="checkItem(index)">
+      <div class="daskV-radio-item" v-for="(item,index) in list" :key="item.value" @click="checkItem(item.value,index)">
           <span class="daskV-radio-item-name" :class="{'active':index===activeIndex}" >{{item.text}}</span>
       </div>
       
@@ -21,9 +21,9 @@ export default {
         }
     },
     methods:{
-        checkItem(index){
-            console.log(index)
+        checkItem(val,index){
             this.activeIndex = index
+            this.$emit('setFontSize',val)
         }
     }
 }

@@ -124,14 +124,16 @@ export default {
             this.barHeight = this.$refs.sliderBar.offsetHeight
             this.value = this.pointBottom
             this.pointStyle = { height : this.value +'px'}
-            this.rangeStyle = { bottom : this.value +'px'}
-            this.$emit("change",this.value)
+            this.rangeStyle = { bottom : this.value +'px'}          
         }
         else{
             this.barStyleLeft = this.$refs.sliderBar.getBoundingClientRect().left
             this.barStyleRight = this.$refs.sliderBar.getBoundingClientRect().right
+            this.pointStyle = { width : this.value +'px'}
+            this.rangeStyle = { left : this.value +'px'}
             this.barWidth = this.$refs.sliderBar.offsetWidth
         }
+        this.$emit("change",this.value)
         
     },
 }
