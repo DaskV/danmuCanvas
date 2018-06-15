@@ -1,7 +1,7 @@
 <template>
-  <div class="daskV-radio">
-      <div class="daskV-radio-item" v-for="(item,index) in list" :key="item.value" @click="checkItem(item.value,index)">
-          <span class="daskV-radio-item-name" :class="{'active':index===activeIndex}" >{{item.text}}</span>
+  <div class="V-radio">
+      <div class="V-radio-item" v-for="(item,index) in list" :key="item.value" @click="checkItem(item.value,index)">
+          <span class="V-radio-item-name" :class="{'active':index===activeIndex}" >{{item.text}}</span>
       </div>
       
   </div>
@@ -30,15 +30,15 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-    .daskV-radio{
-        .daskV-radio-item{        
+    .V-radio{
+        .V-radio-item{        
             display: inline-block;
             margin-right: 10px;
             color: #222;
             cursor: pointer;
             position: relative;
             font-size: 12px;
-            .daskV-radio-item-name{
+            .V-radio-item-name{
                 border-radius: 4px;
                 border:1px solid transparent;
                 padding: 4px 5px;

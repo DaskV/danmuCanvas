@@ -1,13 +1,13 @@
 <template>
-  <div class="daskV-slider">
-      <div class="daskV-slider-wrap">
-            <div class="daskV-slider-track" :class="{'vertical':vertical == true , 'horizontal':vertical === false}">
+  <div class="V-slider">
+      <div class="V-slider-wrap">
+            <div class="V-slider-track" :class="{'vertical':vertical == true , 'horizontal':vertical === false}">
 
-                <div class="daskV-slider-bar" ref="sliderBar" @click="barClick">
-                    <div class="daskV-slider-bar-range" :style="pointStyle"></div>
+                <div class="V-slider-bar" ref="sliderBar" @click="barClick">
+                    <div class="V-slider-bar-range" :style="pointStyle"></div>
                 </div>
-                <div class="daskV-slider-pointer" @mousedown="pointerDown" :style="rangeStyle"></div>
-                <div class="daskV-slider-textValue" v-if="!vertical" :style="{left:value + 'px'}">{{value}}</div>
+                <div class="V-slider-pointer" @mousedown="pointerDown" :style="rangeStyle"></div>
+                <div class="V-slider-textValue" v-if="!vertical" :style="{left:value + 'px'}">{{value}}</div>
             </div>
       </div>
   </div>
@@ -140,15 +140,15 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-    .daskV-slider{
+    .V-slider{
         width: 100%;
         height: 100%;
-        .daskV-slider-wrap{
+        .V-slider-wrap{
             position: relative;
             width: 100%;
             height: 100%;
             cursor: pointer;
-            .vertical.daskV-slider-track{
+            .vertical.V-slider-track{
                 position: absolute;
                 height: 100%;
                 width: 6px;
@@ -157,7 +157,7 @@ export default {
                 left: 50%;
                 margin-left: -3px;
                 background-color: #e5e9ef;
-                .daskV-slider-bar{
+                .V-slider-bar{
                     height: 100%;
                     width: 6px;
                     position: absolute;
@@ -165,7 +165,7 @@ export default {
                     overflow: hidden;
                     bottom: 0;
                     left: 0;
-                    .daskV-slider-bar-range{
+                    .V-slider-bar-range{
                         position: absolute;
                         bottom: 0;
                         width: 100%;
@@ -173,7 +173,7 @@ export default {
                         background-color: #8adced;
                     }
                 }
-                .daskV-slider-pointer{
+                .V-slider-pointer{
                     position: absolute;
                     bottom: 0;
                     left: -4px;
@@ -187,7 +187,7 @@ export default {
                     transition: box-shadow .3s,-webkit-box-shadow .3s;
                 }
             }
-            .horizontal.daskV-slider-track{
+            .horizontal.V-slider-track{
                 position: absolute;
                 width: 100%;
                 height: 6px;
@@ -196,7 +196,7 @@ export default {
                 top: 50%;
                 margin-top: -3px;
                 background-color: #e5e9ef;
-                .daskV-slider-bar{
+                .V-slider-bar{
                     width: 100%;
                     height: 6px;
                     position: absolute;
@@ -204,7 +204,7 @@ export default {
                     overflow: hidden;
                     top: 0;
                     left: 0;
-                    .daskV-slider-bar-range{
+                    .V-slider-bar-range{
                         height: 100%;
                         position: absolute;
                         top: 0;
@@ -212,7 +212,7 @@ export default {
                         background-color: #8adced;
                     }
                 }
-                .daskV-slider-pointer{
+                .V-slider-pointer{
                     position: absolute;
                     top: -4px;
                     height: 14px;
@@ -225,7 +225,7 @@ export default {
                     background-color: #fff;
                     transition: box-shadow .3s,-webkit-box-shadow .3s;
                 }
-                .daskV-slider-textValue{
+                .V-slider-textValue{
                     position: absolute;
                     top: -30px;
                     left: 0;

@@ -2,7 +2,7 @@
   "name": "danmu",
   "version": "1.0.0",
   "description": "a danmu-player of canvas",
-  "author": "daskV",
+  "author": "V",
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",

@@ -1,19 +1,19 @@
 <template>
-  <div class="daskV-progress" :style="{width:progressWidth }"   >
-        <div class="daskV-progress-warp">
-            <div class="daskV-progress-track">
-                <div class="daskV-progress-bar" @mousemove="getDetails" @mouseover="showDetails('block')" @mouseleave="showDetails('none')" ref="progressBar" @click="barClick">
-                    <div class="daskV-progress-bar-range" :style="{width:pointLeft+'px'}"></div>
-                    <div class="daskV-progress-bar-preload" :style="{width:rangeWidth+'px'}"></div>
+  <div class="V-progress" :style="{width:progressWidth }"   >
+        <div class="V-progress-warp">
+            <div class="V-progress-track">
+                <div class="V-progress-bar" @mousemove="getDetails" @mouseover="showDetails('block')" @mouseleave="showDetails('none')" ref="progressBar" @click="barClick">
+                    <div class="V-progress-bar-range" :style="{width:pointLeft+'px'}"></div>
+                    <div class="V-progress-bar-preload" :style="{width:rangeWidth+'px'}"></div>
                 </div>
-                <div class="daskV-progress-pointer" @mousedown="pointerDown" :style="{left:pointLeft + 'px'}" ></div>
+                <div class="V-progress-pointer" @mousedown="pointerDown" :style="{left:pointLeft + 'px'}" ></div>
             </div>
         </div>
-        <div class="daskV-progress-details" :style="{display:detailsShow}">
-            <div class="daskV-progress-details-time" :style="{left:left - 18 +'px'}">{{timing}}</div>
-            <div class="daskV-progress-details-sign" :style="{left:left +'px'}">
-                <div class="daskV-progress-details-sign-down"></div>
-                <div class="daskV-progress-details-sign-up"></div>
+        <div class="V-progress-details" :style="{display:detailsShow}">
+            <div class="V-progress-details-time" :style="{left:left - 18 +'px'}">{{timing}}</div>
+            <div class="V-progress-details-sign" :style="{left:left +'px'}">
+                <div class="V-progress-details-sign-down"></div>
+                <div class="V-progress-details-sign-up"></div>
             </div>
         </div>
   </div>
@@ -72,21 +72,26 @@ export default {
         this.barStyleLeft = this.$refs.progressBar.getBoundingClientRect().left
         this.barStyleRight = this.$refs.progressBar.getBoundingClientRect().right
     },
+    watch:{
+        pointPosition(val){
+            this.pointLeft = val
+        }
+    },
     props:['progressWidth','rangeWidth','pointPosition','timing']
 }
 </script>
 
 <style lang="scss" scoped>
-    .daskV-progress{
+    .V-progress{
         width: 100%;
         height: 28px;
         position: relative;
-        .daskV-progress-warp{
+        .V-progress-warp{
             position: relative;
             width: 100%;
             height: 100%;
             cursor: pointer;
-            .daskV-progress-track{
+            .V-progress-track{
                 position: absolute;
                 width: 100%;
                 height: 6px;
@@ -95,7 +100,7 @@ export default {
                 top: 50%;
                 margin-top: -3px;
                 background-color: #e5e9ef;
-                .daskV-progress-bar{
+                .V-progress-bar{
                     width: 100%;
                     height: 6px;
                     position: absolute;
@@ -103,7 +108,7 @@ export default {
                     overflow: hidden;
                     top: 0;
                     left: 0;
-                    .daskV-progress-bar-range,.daskV-progress-bar-preload{
+                    .V-progress-bar-range,.V-progress-bar-preload{
                         height: 100%;
                         position: absolute;
                         top: 0;
@@ -111,12 +116,12 @@ export default {
                         background-color: #ad8aed;                    
                         z-index: 2;
                     }
-                    .daskV-progress-bar-preload{
+                    .V-progress-bar-preload{
                         background-color: #8adced;
                         z-index: 1;
                     }
                 }
-                .daskV-progress-pointer{
+                .V-progress-pointer{
                     position: absolute;
                     top: -4px;
                     height: 14px;
@@ -131,7 +136,7 @@ export default {
                 }
             }
         }     
-        .daskV-progress-details{
+        .V-progress-details{
             position: absolute;
             top: -20px;
             left: 100px;
@@ -143,7 +148,7 @@ export default {
             pointer-events: none;
             display: none;
             z-index: 99;
-            .daskV-progress-details-time{
+            .V-progress-details-time{
                 position: absolute;
                 top: 4px;
                 z-index: 2;
@@ -157,7 +162,7 @@ export default {
                 vertical-align: top;
                 display: inline-block;
             }
-            .daskV-progress-details-sign{
+            .V-progress-details-sign{
                 cursor: pointer;
                 width: 8px;
                 height: 16px;
@@ -166,7 +171,7 @@ export default {
                 overflow: hidden;
                 top: 26px;
                 left: 76px;
-                .daskV-progress-details-sign-down{
+                .V-progress-details-sign-down{
                     width: 0;
                     height: 0;
                     border-width: 4px 4px 0;
@@ -174,7 +179,7 @@ export default {
                     border-color: #00a1d6 transparent transparent;
                     position: relative;
                 }
-                .daskV-progress-details-sign-up{
+                .V-progress-details-sign-up{
                         margin-top: 8px;
                         width: 0;
                         height: 0;

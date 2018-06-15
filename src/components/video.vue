@@ -1,19 +1,22 @@
 <template>
-    <div id="daskV-player" class="daskV-player" :class="{'fullscreen':fullscreen === true}" @keydown.esc="handlefullscreen">       
+    <div id="Vplayer" class="Vplayer" 
+        :class="{'fullscreen':fullscreen === true , 'hide-controler':controler.opacity===0}"
+        @keydown.esc="handlefullscreen"
+        @mousemove="listneControler" >       
         <!-- 播放区域 -->
-        <div class="daskV-player-section">
+        <div class="Vplayer-section">
             <!-- 加载界面 -->
-            <div class="daskV-player-preview" v-show="step < 3">
-                <div class="daskV-preview-icon"></div>
-                <div class="daskV-preview-text">
-                    <div class="daskV-preview-text-row" v-for="(item,index) in logs" :key="index">{{item.info}}</div>
+            <div class="Vplayer-preview" v-show="step < 3">
+                <div class="V-preview-icon"></div>
+                <div class="V-preview-text">
+                    <div class="V-preview-text-row" v-for="(item,index) in logs" :key="index">{{item.info}}</div>
 
                 </div>
             </div>
             <!-- loading -->
-            <div class="daskV-player-loding" v-show="loading"></div>     
+            <div class="Vplayer-loding" v-show="loading"></div>     
             <!-- 悬浮播放按钮 -->
-            <div class="daskV-player-play" @click="videoPlay(false)" v-show="!playState"></div>
+            <div class="Vplayer-play" @click="videoPlay(false)" v-show="!playPause"></div>
             <!-- 弹幕播放器 -->
             <barrage 
                 ref="barrage"
@@ -23,25 +26,23 @@
 
             />
             <!-- 视频播放器 -->
-            <div class="daskV-player-video" @click="videoPlay(playState)">
+            <div class="Vplayer-video" @click="videoPlay(playPause)">
                 <video :src="sourceSrc" id="video"></video>
             </div>        
-            <!-- 全屏鼠标触发显示控制台区域 -->
-            <div class="daskV-player-hover" @mouseover="listneControler('in')" @mouseout="listneControler('out')"></div>
         </div>
         <!-- 控制台 -->
-        <div class="daskV-player-controler" :style="{'opacity':controler.opacity}" @mouseover="listneControler('in')">
+        <div class="Vplayer-controler" :style="{'opacity':controler.opacity}">
             <!-- 暂停播放按钮 -->
-            <div class="daskV-player-controler-pausePlay daskV-player-btn" @click="videoPlay(playState)">
-                <i class="iconfont" v-show="!playState">&#xe653;</i>     
-                <i class="iconfont" v-show="playState"> &#xe616;</i>                 
+            <div class="Vplayer-controler-pausePlay Vplayer-btn" @click="videoPlay(playPause)">
+                <i class="iconfont" v-show="!playPause">&#xe653;</i>     
+                <i class="iconfont" v-show="playPause"> &#xe616;</i>                 
             </div>
             <!-- 下一个按钮 -->
-            <div class="daskV-player-controler-next daskV-player-btn">
+            <div class="Vplayer-controler-next Vplayer-btn">
                 <i class="iconfont">&#xe624;</i>
             </div>
             <!-- 进度条 -->
-            <div class="daskV-player-controler-progressBar" ref="progressBar">
+            <div class="Vplayer-controler-progressBar" ref="progressBar">
                 <progressBar 
                  :progressWidth="progressWidth" 
                  :rangeWidth="rangeWidth" 
@@ -53,74 +54,74 @@
                  v-if="progressWidth" />
             </div>
             <!-- 设置区域 -->
-            <div class="daskV-player-controler-config">
+            <div class="Vplayer-controler-config">
                 <!-- 计时器 -->
-                <div class="daskV-player-controler-timer daskV-player-btn">
-                    <div class="daskV-player-controler-time-now">{{nowTime}}</div>
-                    <div class="daskV-player-controler-time-divider">/</div>
-                    <div class="daskV-player-controler-time-total">{{duration}}</div>
+                <div class="Vplayer-controler-timer Vplayer-btn">
+                    <div class="Vplayer-controler-time-now">{{nowTime}}</div>
+                    <div class="Vplayer-controler-time-divider">/</div>
+                    <div class="Vplayer-controler-time-total">{{duration}}</div>
                 </div>
                 <!-- 声音 -->
-                <div class="daskV-player-controler-voice daskV-player-btn">
+                <div class="Vplayer-controler-voice Vplayer-btn">
                     <i class="iconfont" v-show="!voice.noVoice">&#xe625;</i>
                     <i class="iconfont" v-show="voice.noVoice">&#xe620;</i>
-                    <div class="daskV-player-controler-voice-handle" >
-                        <span class="daskV-player-controler-voice-value">{{voice.value}}</span>
+                    <div class="Vplayer-controler-voice-handle" >
+                        <span class="Vplayer-controler-voice-value">{{voice.value}}</span>
                         <slider  @change="voiceChange" :vertical="true" />
                     </div>
                 </div>
                 <!-- 画质切换 -->
-                <div class="daskV-player-controler-qualitymenu daskV-player-btn">
+                <div class="Vplayer-controler-qualitymenu Vplayer-btn">
                     <div>720P</div>
-                    <ul class="daskV-player-controler-quliatymenu-selector">
-                        <li class="daskV-player-controler-quliatymenu-row" :class="{'active':quality.activeIndex === index }" v-for="(item,index) in quality.data" :key="index" @click="setQuality(index)">{{item}}</li>
+                    <ul class="Vplayer-controler-quliatymenu-selector">
+                        <li class="Vplayer-controler-quliatymenu-row" :class="{'active':quality.activeIndex === index }" v-for="(item,index) in quality.data" :key="index" @click="setQuality(index)">{{item}}</li>
                     </ul>
                 </div>
                 <!-- 弹幕设置 -->
-                <div class="daskV-player-controler-barrageSet daskV-player-btn">
+                <div class="Vplayer-controler-barrageSet Vplayer-btn">
                     <i class="iconfont" v-show="!barrage.hide">&#xe698;</i>
                     <i class="iconfont" v-show="barrage.hide">&#xe697;</i>
-                    <div class="daskV-player-controler-barrageSet-wrap">
-                        <div class="daskV-player-controler-barrageSet-row">
+                    <div class="Vplayer-controler-barrageSet-wrap">
+                        <div class="Vplayer-controler-barrageSet-row">
                             <label>不透明度:</label>
                             <slider @change="barrageChange" :vertical="false" style="flex:1" :step="5" :pointLeft="100" />
                         </div>
-                        <div class="daskV-player-controler-barrageSet-row">
+                        <div class="Vplayer-controler-barrageSet-row">
                             <label>隐藏弹幕:</label>
                             <input type="checkbox" v-model="barrage.hide" />
                         </div>
                     </div>
                 </div>
                 <!-- 全屏 -->
-                <div class="daskV-player-controler-fullscreen daskV-player-btn" @click="handlefullscreen">
+                <div class="Vplayer-controler-fullscreen Vplayer-btn" @click="handlefullscreen">
                     <i class="iconfont">&#xe781;</i>
                 </div>
             </div>
         </div>
         <!-- 弹幕输入区 -->
-        <div class="daskV-player-sendbar">
+        <div class="Vplayer-sendbar">
             <!-- 设置弹幕字体 -->
-            <div class="daskV-player-sendbar-fontset daskV-player-btn" @click="fontPick.show = !fontPick.show">
+            <div class="Vplayer-sendbar-fontset Vplayer-btn" @click="fontPick.show = !fontPick.show">
                 <i class="iconfont">&#xe64f;</i>
             </div>
             <!-- 设置弹幕颜色 -->
             <colorPicker v-model="colorPick.value" ref="colorPicker" style="width:5%;" @colorChange="setFontColor">
-                <div class="daskV-player-sendbar-fontcolor daskV-player-btn" @click="showPick">
+                <div class="Vplayer-sendbar-fontcolor Vplayer-btn" @click="showPick">
                     <span class="corlorDisplay" v-show="colorPick.value" :style="{backgroundColor:colorPick.value}"></span>
                     <i class="iconfont" v-show="!colorPick.value">&#xe65b;</i>
                 </div>
             </colorPicker>     
             <!-- 输入区域 -->
-            <div class="daskV-player-texthandle">
-                <input type="text" placeholder="您可以在这里输入弹幕哦~QAQ " class="daskV-player-texthandle-input"  v-model="barrage.text"/>
+            <div class="Vplayer-texthandle">
+                <input type="text" placeholder="您可以在这里输入弹幕哦~QAQ " class="Vplayer-texthandle-input"  v-model="barrage.text"/>
                 <!-- 发送按钮 -->
-                <div class="daskV-player-sendbtn" @click="sendBarrage">
+                <div class="Vplayer-sendbtn" @click="sendBarrage">
                     <span>发 送》</span>
                 </div>
             </div>        
             <!-- 字体选择器 -->       
             <transition name="slide-fade">
-                <div class="daskV-player-fontpick-warp" v-show="fontPick.show">
+                <div class="Vplayer-fontpick-warp" v-show="fontPick.show">
                     <label>字号</label>
                     <radioer :list="fontPick.list" @setFontSize="setFontSize" />
                 </div> 
@@ -136,10 +137,12 @@ import progressBar from './progress'
 import slider from './slider'
 import colorPicker from './colorPicker'
 import radioer from './radio'
+
+
 export default {
   data() {
     return {
-        progressWidth:'',
+        progressWidth:0,
         voice:{
             noVoice:false,
             value:0,
@@ -180,12 +183,13 @@ export default {
             ]
         },
         controler:{
-            opacity:1
+            opacity:1,
+            hover:false
         },
         logs:[],
         step:0,
         rangeWidth:0,
-        playState:false,
+        playPause:false,
         nowTime:'00:00',
         duration:'00:00',
         timing:'00:00',
@@ -193,24 +197,19 @@ export default {
         frequency:1000,
         allTimer:{},
         loading:false,
-        fullscreen:false,
-        
-        
+        fullscreen:false,       
     };
   },
-  created() {
-  },
   mounted() {
-        this.progressWidth = this.$refs.progressBar.offsetWidth
+       
+        this.progressWidth = document.querySelector('.Vplayer-controler-progressBar').offsetWidth
         document.onclick = e => {
             if(!this.$el.contains(e.target)){
                 this.fontPick.show = false   
                 this.$refs.colorPicker.hideBox()
             }  
-        }
-        
-        this.load()
-        this.downloading()       
+        }       
+        this.load()           
   },
   methods: {
         //设置音量
@@ -241,9 +240,7 @@ export default {
         },
         //发送弹幕
         sendBarrage(){
-
-            this.$refs.barrage.shoot(this.barrage.text,this.barrage.config)
-            
+            this.$refs.barrage.shoot(this.barrage.text,this.barrage.config)            
             this.barrage.text = ''
         },
         //获取视频状态
@@ -276,8 +273,8 @@ export default {
             }    
         },
         //获取当前播放位置
-        getNowPosition(){          
-            this.pointPosition =  Math.floor((this.video.currentTime / this.video.duration) * this.progressWidth)        
+        getNowPosition(){                    
+            this.pointPosition =  Math.round((this.video.currentTime / this.video.duration) * this.progressWidth)      
         },
         //打印日志
         setLogs(ok,info){
@@ -309,9 +306,9 @@ export default {
         timerFrequency(){
            let min = 1
            if(this.video.duration>min*10) this.frequency = 2000
-           if(this.video.duration>min*20) this.frequency = 3000
-           if(this.video.duration>min*30) this.frequency = 4000
-           if(this.video.duration>min*60) this.frequency = 5000
+           else if(this.video.duration>min*20) this.frequency = 3000
+           else if(this.video.duration>min*30) this.frequency = 4000
+           else if(this.video.duration>min*60) this.frequency = 5000
         },
         //按下圆点,暂时清除位置计时器
         pointerDown(){
@@ -326,9 +323,7 @@ export default {
         //定时器
         timer(){
              //当前位置定时器
-            this.allTimer['PositionTimer'] = setInterval(()=>{
-                this.getNowPosition()
-            },this.frequency)
+            this.allTimer['PositionTimer'] = setInterval(this.getNowPosition,this.frequency)
             //时间计时器
             this.allTimer['nowTimer'] = setInterval(()=>{
                 this.nowTime = this.timerChange(this.video.currentTime) 
@@ -350,7 +345,7 @@ export default {
             else{
                 this.video.play()             
             }              
-            this.playState = !type
+            this.playPause = !type
         },
         //缓冲与可播放
         downloading(){
@@ -363,51 +358,55 @@ export default {
         },
         //全屏与关闭全屏
         handlefullscreen(){
-            let domElement =   document.documentElement
             //全屏
             if(!this.fullscreen){
                 //chrome           
-                if(domElement.webkitRequestFullScreen)
-                    domElement.webkitRequestFullScreen();  
+                if(this.container.webkitRequestFullScreen)              
+                    this.container.webkitRequestFullScreen();  
                 //W3C
-                else if(domElement.requestFullscreen)
-                    domElement.requestFullscreen();
+                else if(this.container.requestFullscreen)
+                    this.container.requestFullscreen();
                 //firefox
-                else if(domElement.mozRequestFullScreen)
-                    domElement.mozRequestFullScreen();
-                //ie
-                else if(domElement.msRequestFullscreen)
-                    domElement.msRequestFullscreen();
-
+                else if(this.container.mozRequestFullScreen)
+                    this.container.mozRequestFullScreen();
                 
                 setTimeout(() => {
                     this.progressWidth = this.$refs.progressBar.offsetWidth
-                    this.controler.opacity = 0;
-                }, 1000);
+                }, 0);
             }
             //关闭全屏
             else{
                  //chrome           
-                if(domElement.webkitCancelFullScreen)
-                    domElement.webkitCancelFullScreen();  
+                if(document.webkitCancelFullScreen)
+                    document.webkitCancelFullScreen();  
                 //W3C
-                else if(domElement.exitFullscreen)
-                    domElement.exitFullscreen();
+                else if(document.exitFullscreen)
+                    document.exitFullscreen();
                 //firefox
-                else if(domElement.mozCancelFullScreen)
-                    domElement.mozCancelFullScreen();
-                //ie
-                else if(domElement.msExitFullscreen)
-                    domElement.msExitFullscreen();
+                else if(document.mozCancelFullScreen)
+                    document.mozCancelFullScreen();
 
                 this.controler.opacity = 1;
             }
             this.fullscreen = !this.fullscreen
         },
         //全屏监控鼠标,隐藏显示控制栏
-        listneControler(type){
-            if(this.fullscreen){
-                this.controler.opacity = type==='in' ? 1 : 0
+        listneControler(e){
+            if(this.fullscreen && this.playPause){               
+                this.controler.opacity = 1            
+                let startX = e.clientX,
+                    startY = e.clientY;
+                clearTimeout(timerOut)   
+                var timerOut = setTimeout(() => {
+                    let endX = e.clientX
+                    let endY = e.clientY
+                    if(startX === endX && startY === endY){
+                        this.controler.opacity = 0
+                    }
+                    else{
+                        this.controler.opacity = 1
+                    }
+                }, 3000);           
             }
         },
         //全屏时监控键盘
@@ -418,7 +417,7 @@ export default {
                         this.handlefullscreen()            
                     }
                     else if(e.keyCode === 13 || e.keyCode === 32){
-                        this.videoPlay(this.playState)
+                        this.videoPlay(this.playPause)
                     }
                 }            
             }
@@ -430,12 +429,8 @@ export default {
             this.video.onloadedmetadata = ()=>{
                 this.getVideoState()          
                 this.listneKeyCode()
+                this.downloading()  
             }        
-        }
-  },
-  computed:{
-        video(){
-            return document.querySelector('#video')
         }
   },
   props:{
@@ -444,7 +439,16 @@ export default {
             type:String
         },
   },
-  components:{barrage,progressBar,slider,colorPicker,radioer}
+  computed:{
+      video(){
+        return document.querySelector('#video')
+      },
+      container(){
+        return document.querySelector('#Vplayer')  
+      }
+  },
+  components:{barrage,progressBar,slider,colorPicker,radioer},
+
 };
 </script>
 
@@ -502,10 +506,10 @@ $border:1px solid #e2e2e2;
   opacity: 0;
 }
 
-.daskV-player *{
+.Vplayer *{
     user-select: none;
 }
-.daskV-player-btn:hover{
+.Vplayer-btn:hover{
     background-color: #f4f5f7;       
     transition: all 0.3s linear;
     cursor: pointer;
@@ -514,20 +518,20 @@ $border:1px solid #e2e2e2;
         transition: all 0.3s linear;
     }
 }
-.daskV-player {
+.Vplayer {
     position: relative;
     pointer-events:auto;
     width: 100%;
     height: 100%; 
     font-family: Arial, Helvetica, sans-serif;
     border:$border;
-    .daskV-player-section{
+    .Vplayer-section{
         position: relative;
         z-index: 69;
         width: 100%;
         height: 100%;
         user-select: none;
-        .daskV-player-preview{
+        .Vplayer-preview{
             width: 100%;
             height: 100%;
             position: absolute;
@@ -536,7 +540,7 @@ $border:1px solid #e2e2e2;
             z-index: 13;
             background: #fff;
             cursor: pointer;
-            .daskV-preview-icon{
+            .V-preview-icon{
                 position: absolute;
                 left: 50%;
                 top: 50%;
@@ -547,7 +551,7 @@ $border:1px solid #e2e2e2;
                 background-image: url('../assets/images/tv.gif');
                 @include backgourndImageCenter(80%)
             }
-            .daskV-preview-text{
+            .V-preview-text{
                 position: absolute;
                 color: #ccd0d7;
                 font-size: 12px;
@@ -556,7 +560,7 @@ $border:1px solid #e2e2e2;
                 line-height: 20px; 
             }
         }
-        .daskV-player-loding{
+        .Vplayer-loding{
             position: absolute;
             left: 50%;
             top: 50%;
@@ -568,7 +572,7 @@ $border:1px solid #e2e2e2;
             @include backgourndImageCenter(70%);
             z-index: 55;
         }
-        .daskV-player-play{
+        .Vplayer-play{
             display: block;
             width: 100px;
             height: 84px;
@@ -580,7 +584,7 @@ $border:1px solid #e2e2e2;
             background-image: url('../assets/images/play.png');
             @include backgourndImageCenter(75%)
         }
-        .daskV-player-video{
+        .Vplayer-video{
             position: relative;
             display: flex;
             flex-grow: 1;
@@ -593,11 +597,10 @@ $border:1px solid #e2e2e2;
                 display:block
             }
         }
-        .daskV-player-hover{
+        .Vplayer-hover{
             width: 100%;
             height: 30%;
             z-index: 81;
-            display: none;
             background: transparent;
             position: absolute;
             left: 0;
@@ -605,7 +608,7 @@ $border:1px solid #e2e2e2;
             cursor: pointer;
         }
     }
-    .daskV-player-controler{
+    .Vplayer-controler{
         display: flex;
         flex-flow: row nowrap;
         align-items: center;
@@ -615,7 +618,7 @@ $border:1px solid #e2e2e2;
         border-top: 0;
         font-size: $fontSize;
         color:$fontColor;
-        .daskV-player-controler-pausePlay,.daskV-player-controler-next{
+        .Vplayer-controler-pausePlay,.Vplayer-controler-next{
             width: 5%;
             height: 100%;
             display: flex;
@@ -623,10 +626,10 @@ $border:1px solid #e2e2e2;
             align-items: center;
             cursor: pointer;           
         }
-        .daskV-player-controler-progressBar{
+        .Vplayer-controler-progressBar{
             flex:1
         }
-        .daskV-player-controler-config{
+        .Vplayer-controler-config{
             width: 30%;
             height: 100%;
             padding-left:1%; 
@@ -634,25 +637,25 @@ $border:1px solid #e2e2e2;
             flex-flow:row nowrap;
             justify-content: flex-start;            
             align-items: center;
-            .daskV-player-controler-timer{              
+            .Vplayer-controler-timer{              
                 height: 100%;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 flex-basis: 10%;
             }
-            .daskV-player-controler-voice{
+            .Vplayer-controler-voice{
                 width: 10%;
                 height: 100%;
                 line-height: 30px;
                 text-align: center;
                 position: relative;
                 &:hover{
-                    .daskV-player-controler-voice-handle{
+                    .Vplayer-controler-voice-handle{
                         visibility: visible;
                     }
                 }
-                .daskV-player-controler-voice-handle{
+                .Vplayer-controler-voice-handle{
                     visibility: hidden;
                     width: 100%;
                     height: 100px;
@@ -665,7 +668,7 @@ $border:1px solid #e2e2e2;
                     border:$border;
                     @include borderRadius();
                     @include boxshadow();
-                    .daskV-player-controler-voice-value{
+                    .Vplayer-controler-voice-value{
                         position: absolute;
                         top: 0;
                         left: 0;
@@ -675,18 +678,18 @@ $border:1px solid #e2e2e2;
                     }
                 }
             }
-            .daskV-player-controler-qualitymenu{
+            .Vplayer-controler-qualitymenu{
                 width: 15%;
                 height: 100%;
                 line-height: 30px;
                 text-align: center;
                 position: relative;
                 &:hover{
-                    .daskV-player-controler-quliatymenu-selector{
+                    .Vplayer-controler-quliatymenu-selector{
                         display: block;
                     }
                 }
-                .daskV-player-controler-quliatymenu-selector{
+                .Vplayer-controler-quliatymenu-selector{
                     display: none;
                     position: absolute;
                     top: -100px;
@@ -698,7 +701,7 @@ $border:1px solid #e2e2e2;
                     border:$border;
                     @include borderRadius();
                     @include boxshadow();
-                    .daskV-player-controler-quliatymenu-row{
+                    .Vplayer-controler-quliatymenu-row{
                         padding: 0 20px;
                         transition: all .3s linear;
                         &:hover{
@@ -712,18 +715,18 @@ $border:1px solid #e2e2e2;
                     }
                 }
             }
-            .daskV-player-controler-barrageSet{
+            .Vplayer-controler-barrageSet{
                 width: 10%;
                 height: 100%;
                 line-height: 30px;
                 text-align: center;
                 position: relative;
                 &:hover{
-                    .daskV-player-controler-barrageSet-wrap{
+                    .Vplayer-controler-barrageSet-wrap{
                         visibility: visible;
                     }
                 }
-                .daskV-player-controler-barrageSet-wrap{
+                .Vplayer-controler-barrageSet-wrap{
                     visibility: hidden;
                     position: absolute;
                     width: 170px;
@@ -736,7 +739,7 @@ $border:1px solid #e2e2e2;
                     @include borderRadius();
                     @include boxshadow();
                     padding: 20px 10px;
-                    .daskV-player-controler-barrageSet-row{
+                    .Vplayer-controler-barrageSet-row{
                         @include flexRow();                        
                         label{
                             margin-right: 8px;
@@ -744,27 +747,27 @@ $border:1px solid #e2e2e2;
                     }
                 }
             }
-            .daskV-player-controler-fullscreen{
+            .Vplayer-controler-fullscreen{
                 line-height: 30px;
                 text-align: center;
                 height: 100%;
             }
         }
-        .daskV-player-controler-config>div{
+        .Vplayer-controler-config>div{
             flex:1
         }
     }
-    .daskV-player-sendbar{
+    .Vplayer-sendbar{
         height: 40px;
         line-height: 40px;
         @include flexRow();
         position: relative;
-        .daskV-player-sendbar-fontset{
+        .Vplayer-sendbar-fontset{
             width:5%;
             text-align: center;
             position: relative;
         }
-        .daskV-player-sendbar-fontcolor{
+        .Vplayer-sendbar-fontcolor{
             width:100%;
             text-align: center;
             position: relative;
@@ -777,12 +780,12 @@ $border:1px solid #e2e2e2;
                 border-radius: 4px;
             }
         }
-        .daskV-player-texthandle{
+        .Vplayer-texthandle{
             flex: 1;
             background: linear-gradient(#f5f5f5,#fff);
             border-left: $border;
             @include flexRow();
-            .daskV-player-texthandle-input{
+            .Vplayer-texthandle-input{
                 -webkit-appearance: none;
                 height: 100%;
                 border: none;
@@ -793,7 +796,7 @@ $border:1px solid #e2e2e2;
                 color:$fontColor;
             }
         }
-        .daskV-player-sendbtn{
+        .Vplayer-sendbtn{
             color: #fff;
             border-radius: 4px;
             background-color: #00a1d6;
@@ -817,7 +820,7 @@ $border:1px solid #e2e2e2;
                 border-color: #00b5e5;
             }
         }
-        .daskV-player-fontpick-warp{
+        .Vplayer-fontpick-warp{
             position: absolute;
             left:0;
             bottom: 40px;
@@ -832,18 +835,18 @@ $border:1px solid #e2e2e2;
             @include boxshadow();          
         }
     }
-    .daskV-player-sendbar>div{
+    .Vplayer-sendbar>div{
         height: 100%;
     }
     &.fullscreen{
-        position: fixed;
+        position: fixed !important;
         width: 100%;
         height: 100%;
         left: 0;
         top: 0;
         border-radius: 0;
         border: 0;
-        .daskV-player-controler{
+        .Vplayer-controler{
             position: fixed;
             bottom: 0;
             left: 0;
@@ -851,15 +854,15 @@ $border:1px solid #e2e2e2;
             z-index: 80;
             transition: all 0.3s linear;
         }
-        .daskV-player-controler-pausePlay,.daskV-player-controler-next{
+        .Vplayer-controler-pausePlay,.Vplayer-controler-next{
             width: 2%;
         }
-        .daskV-player-controler-config{
+        .Vplayer-controler-config{
             width: 15%;
         }
-        .daskV-player-hover{
-            display: block;
-        }
+    }
+    &.hide-controler{
+        cursor: none;
     }
 }
 

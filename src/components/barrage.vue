@@ -1,11 +1,11 @@
 <template>
-  <canvas class="daskV-barrage-player" ref="player" :style="{'opacity':opacity}" :width="width" :height="height">
+  <canvas class="V-barrage-player" ref="player" :style="{'opacity':opacity}" :width="width" :height="height">
     您的浏览器不支持canvas标签。
   </canvas>
 </template>
 
 <style>
-.daskV-barrage-player {
+.V-barrage-player {
   position: absolute;
   top: 0;
   left: 0;
